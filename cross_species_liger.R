@@ -13,15 +13,10 @@ BC_species <- readRDS("~/BC_species1.rds")#this is a Seurat object with human, m
 
 
 #feature selection
-ifnb.list <- SplitObject(BC_species, split.by = "species")
-ifnb.list.1 <- lapply(X = ifnb.list, FUN = function(x) {
-    x <- FindVariableFeatures(x, selection.method = "dispersion", nfeatures = 2000)
-  })
-features = Reduce(union, list(VariableFeatures(ifnb.list.1[[1]]), VariableFeatures(ifnb.list.1[[2]]), VariableFeatures(ifnb.list.1[[3]])))
-
+BC_species <- FindVariableFeatures(BC_species, nfeatures = 4000, selection.method = "dispersion")
 
 #run liger
-BC_species <- ScaleData(BC_species, features = features, split.by = "species", do.center = FALSE)
+BC_species <- ScaleData(BC_species, split.by = "species", do.center = FALSE)
 BC_species <- RunOptimizeALS(BC_species, k = 40, lambda = 5, split.by = "species")#
 BC_species <- RunQuantileNorm(BC_species, split.by = "species")
 BC_species <- FindNeighbors(BC_species, reduction = "iNMF", dims = 1:40)
@@ -60,9 +55,7 @@ for (j in 1:100){
   new_df <- df %>% group_by(cell_identity) %>% sample_n(100)
   sel<-new_df$index
   BC <- BC_dim[, sel]#select columns
-  #print(head(BC))
   BC<-BC[sample(c(1:nrow(BC)), floor(0.8*nrow(BC)), replace = F), ]
-  #print(head(BC))
   BC_int_avg <- sapply(split(colnames(BC), new_df$cell_identity), function(cells) rowMeans(as.matrix(BC[,cells])))
   dist <- dist(as.data.frame(t(BC_int_avg)), diag=TRUE)
   phy1 <- nj(dist)
