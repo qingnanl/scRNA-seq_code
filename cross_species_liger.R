@@ -17,7 +17,7 @@ BC_species <- FindVariableFeatures(BC_species, nfeatures = 4000, selection.metho
 
 #run liger
 BC_species <- ScaleData(BC_species, split.by = "species", do.center = FALSE)
-BC_species <- RunOptimizeALS(BC_species, k = 40, lambda = 5, split.by = "species")#
+BC_species <- RunOptimizeALS(BC_species, k = 20, lambda = 5, split.by = "species")#
 BC_species <- RunQuantileNorm(BC_species, split.by = "species")
 BC_species <- FindNeighbors(BC_species, reduction = "iNMF", dims = 1:40)
 BC_species <- FindClusters(BC_species, resolution = 0.1)
@@ -25,10 +25,19 @@ BC_species <- RunUMAP(BC_species, dims = 1:ncol(BC_species[["iNMF"]]), reduction
 
 
 #plot to see the integration result
-tiff("./liger_2/BC_species_40k.tiff", res = 300, width = 3000, height = 2000)
+tiff("~/BC_species_20k.tiff", res = 300, width = 3000, height = 2000)
 p<-DimPlot(BC_species, group.by = "species")
 print(p)
 dev.off()
+
+tiff("~/BC_species_20k_id.tiff")
+p<-DimPlot(BC_species, group.by = "cell_identity", label = T) + NoLegend()
+print(p)
+dev.off()
+
+#save
+saveRDS(BC_species, "/liger_2/BC_species_liger.rds")
+
 
 
 #use 40 reduced dims to calculate distance
