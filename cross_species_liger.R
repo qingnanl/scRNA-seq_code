@@ -13,13 +13,13 @@ BC_species <- readRDS("~/BC_species1.rds")#this is a Seurat object with human, m
 
 
 #feature selection
-BC_species <- FindVariableFeatures(BC_species, nfeatures = 4000, selection.method = "dispersion")
+BC_species <- FindVariableFeatures(BC_species, nfeatures = 5000, selection.method = "dispersion")
 
 #run liger
 BC_species <- ScaleData(BC_species, split.by = "species", do.center = FALSE)
 BC_species <- RunOptimizeALS(BC_species, k = 20, lambda = 5, split.by = "species")#
 BC_species <- RunQuantileNorm(BC_species, split.by = "species")
-BC_species <- FindNeighbors(BC_species, reduction = "iNMF", dims = 1:40)
+BC_species <- FindNeighbors(BC_species, reduction = "iNMF", dims = 1:20)
 BC_species <- FindClusters(BC_species, resolution = 0.1)
 BC_species <- RunUMAP(BC_species, dims = 1:ncol(BC_species[["iNMF"]]), reduction = "iNMF")
 
@@ -40,8 +40,8 @@ saveRDS(BC_species, "/liger_2/BC_species_liger.rds")
 
 
 
-#use 40 reduced dims to calculate distance
-BC_dim<-as.data.frame(t(BC_species@reductions$iNMF@cell.embeddings[, 1:40]))
+#use 20 reduced dims to calculate distance
+BC_dim<-as.data.frame(t(BC_species@reductions$iNMF@cell.embeddings[, 1:20]))
 #average by cell_identity
 BC_dim_avg <- sapply(split(colnames(BC_dim), as.character(BC_species@meta.data$cell_identity)),
                          function(cells) rowMeans(as.matrix(BC_dim[,cells])))
@@ -55,7 +55,7 @@ p<-plot(phy1, edge.width = 2)
 print(p)
 dev.off()
 
-#now need to calculate a consensus tree, because we don't want the result to be affected by parameter selection that much
+#it is optional to calculate a consensus tree, (we don't want the result to be affected by parameter selection that much)
 treeList<-c()
 
 
